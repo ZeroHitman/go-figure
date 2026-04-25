@@ -3,10 +3,14 @@ package figure
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"io"
 	"path"
 	"strings"
 )
+
+//go:embed fonts/*.flf
+var assetFS embed.FS
 
 const defaultFont = "standard"
 
@@ -23,9 +27,9 @@ var colors = map[string]string{
 }
 
 type font struct {
-	name      string
-	height    int
-	baseline  int
+	name     string
+	height   int
+	baseline int
 	hardblank byte
 	reverse   bool
 	letters   [][]string
@@ -33,10 +37,19 @@ type font struct {
 
 func newFont(name string) (font font) {
 	font.setName(name)
-	fontBytes, err := Asset(path.Join("fonts", font.name+".flf"))
+	
+	// Mencoba membaca file dari folder fonts yang di-embed
+	// Kita coba nama aslinya dulu, jika gagal coba lowercase
+	fontPath := path.Join("fonts", font.name+".flf")
+	fontBytes, err := assetFS.ReadFile(fontPath)
 	if err != nil {
-		panic(err)
+		fontPath = path.Join("fonts", strings.ToLower(font.name)+".flf")
+		fontBytes, err = assetFS.ReadFile(fontPath)
+		if err != nil {
+			panic("Font tidak ditemukan di folder fonts: " + font.name)
+		}
 	}
+
 	fontBytesReader := bytes.NewReader(fontBytes)
 	scanner := bufio.NewScanner(fontBytesReader)
 	font.setAttributes(scanner)
@@ -72,10 +85,10 @@ func (font *font) setAttributes(scanner *bufio.Scanner) {
 }
 
 func (font *font) setLetters(scanner *bufio.Scanner) {
-	font.letters = append(font.letters, make([]string, font.height, font.height)) //TODO: set spaces from flf
+	font.letters = append(font.letters, make([]string, font.height, font.height))
 	for i := range font.letters[0] {
 		font.letters[0][i] = "  "
-	} //TODO: set spaces from flf
+	}
 	letterIndex := 0
 	for scanner.Scan() {
 		text, cutLength, letterIndexInc := scanner.Text(), 1, 0
