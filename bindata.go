@@ -4,6 +4,7 @@
 // fonts/3x5.flf
 // fonts/5lineoblique.flf
 // fonts/acrobatic.flf
+// fonts/ansi_shadow.flf
 // fonts/alligator.flf
 // fonts/alligator2.flf
 // fonts/alphabet.flf
